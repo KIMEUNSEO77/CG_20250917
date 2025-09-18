@@ -21,6 +21,7 @@ struct Rec
 };
 vector<Rec> rects;  // 사각형들
 Rec eraser;         // 지우개
+bool eraseMode = false;
 
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -135,6 +136,7 @@ void Mouse(int button, int state, int x, int y)
     {
         if (state == GLUT_DOWN)
         {
+			eraseMode = true;
 			eraser.posX = nx;
 			eraser.posY = ny;
 			MouseInside(eraser);
@@ -143,13 +145,29 @@ void Mouse(int button, int state, int x, int y)
         }
         else if (state == GLUT_UP)
         {
-            
+			eraseMode = false;
         }
     }
     else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
     {
        
     }
+    glutPostRedisplay();
+}
+
+// 마우스 드래그 콜백
+void MouseDrag(int x, int y)
+{
+    if (!eraseMode) return;
+
+    float nx, ny;   // x, y를 정규화한 좌표
+    PixelTrans(x, y, nx, ny);
+
+    eraser.posX = nx;
+    eraser.posY = ny;
+
+    MouseInside(eraser);
+
     glutPostRedisplay();
 }
 
@@ -176,6 +194,7 @@ void main(int argc, char** argv)
     glutReshapeFunc(Reshape);
 
     glutMouseFunc(Mouse);
+    glutMotionFunc(MouseDrag);
 
     glutMainLoop();
 }
