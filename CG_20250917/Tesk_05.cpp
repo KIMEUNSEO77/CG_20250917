@@ -8,6 +8,8 @@
 int width = 800;
 int height = 600;
 
+int removedCount = 0; // 제거된 사각형의 개수
+
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 
@@ -77,7 +79,18 @@ void Mouse(int button, int state, int x, int y)
     }
     else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
     {
-       
+        if (removedCount > 0)
+        {
+            Rec temp{};
+			temp.posX = nx;
+			temp.posY = ny;
+            RandomColor(temp.color);
+            temp.scale = 1.0f;
+            temp.width = recW;
+            temp.height = recH;
+            rects.push_back(temp);
+			removedCount--;
+        }
     }
     glutPostRedisplay();
 }
@@ -102,7 +115,12 @@ void MouseDrag(int x, int y)
         GetCollid(rects[i], l2, r2, b2, t2);
         if (CheckCollid(l1, r1, b1, t1, l2, r2, b2, t2))
         {
+			eraser.color[0] = rects[i].color[0];
+			eraser.color[1] = rects[i].color[1];
+            eraser.color[2] = rects[i].color[2];
+			eraser.scale += 0.1f;
             rects.erase(rects.begin() + i);
+			removedCount++;
         }
 	}
 
@@ -116,6 +134,8 @@ void Reset()
 {
     rects.clear();
     InitRects();
+	InitEraser();
+	removedCount = 0;
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)

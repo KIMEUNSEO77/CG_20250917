@@ -61,3 +61,15 @@ void InitRects()
         rects.push_back(temp);
     }
 }
+
+// 사각형을 새로 추가
+void AddRect()
+{
+    Rec temp{};
+    RandomPosition(temp.posX, temp.posY);
+    RandomColor(temp.color);
+    temp.scale = 1.0f;
+    temp.width = recW;
+    temp.height = recH;
+    rects.push_back(temp);
+}

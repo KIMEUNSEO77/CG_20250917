@@ -13,6 +13,7 @@ void RandomColor(float color[3]);
 void RandomPosition(float& posX, float& posY);
 void DrawRect(const Rec& rect);
 void InitRects();
+void AddRect(); 
 
 extern float recW;
 extern float recH;
