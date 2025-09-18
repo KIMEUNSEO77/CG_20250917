@@ -5,6 +5,7 @@
 
 float recW = 0.06f;  // 사각형의 너비
 float recH = 0.08f;  // 사각형의 높이
+bool rectMove = false; // 사각형 움직이기 모드
 
 std::vector<Rec> rects;  // 사각형들
 
@@ -58,6 +59,9 @@ void InitRects()
         temp.scale = 1.0f;
         temp.width = recW;
         temp.height = recH;
+
+		temp.vx = 0.02f;
+		temp.vy = 0.01f; 
         rects.push_back(temp);
     }
 }
@@ -72,4 +76,32 @@ void AddRect()
     temp.width = recW;
     temp.height = recH;
     rects.push_back(temp);
+}
+
+// 벽에 닿았는지 확인하는 함수
+bool IsWall(const Rec& rec, float x, float y)
+{
+    float halfW = rec.width * rec.scale * 0.5f;
+    float halfH = rec.height * rec.scale * 0.5f;
+
+    // 정규화 좌표
+    if (x - halfW <= -1.0f) return true; // 왼쪽
+    if (x + halfW >= 1.0f) return true; // 오른쪽
+    if (y - halfH <= -1.0f) return true; // 아래
+    if (y + halfH >= 1.0f) return true; // 위
+    return false;
+}
+
+// 사각형 움직이기
+void MoveRect(Rec& rect, float dx, float dy)
+{
+    if (IsWall(rect, rect.posX + rect.vx, rect.posY)) 
+        rect.vx = -rect.vx; 
+
+    if (IsWall(rect, rect.posX, rect.posY + rect.vy)) 
+        rect.vy = -rect.vy;
+    
+
+    rect.posX += rect.vx;
+    rect.posY += rect.vy;
 }

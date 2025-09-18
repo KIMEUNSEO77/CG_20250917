@@ -118,7 +118,8 @@ void MouseDrag(int x, int y)
 			eraser.color[0] = rects[i].color[0];
 			eraser.color[1] = rects[i].color[1];
             eraser.color[2] = rects[i].color[2];
-			eraser.scale += 0.1f;
+            if (rectMove) eraser.scale += 0.2f;
+			else eraser.scale += 0.1f;
             rects.erase(rects.begin() + i);
 			removedCount++;
         }
@@ -136,16 +137,57 @@ void Reset()
     InitRects();
 	InitEraser();
 	removedCount = 0;
+	rectMove = false;
+}
+
+void Timer(int value)
+{
+    if (rectMove)
+    {
+        for (int i = 0; i < rects.size(); ++i)
+        {
+            MoveRect(rects[i], 0.01f, 0.01f);
+            MouseInside(rects[i]);
+        }
+        glutPostRedisplay();  // 화면 갱신
+    }
+	glutTimerFunc(50, Timer, 0);   // 타이머 콜백 함수 재등록
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
     switch (key)
     {
-    case 'r':
-        Reset();
-        glutPostRedisplay();  // 화면 갱신
-        break;
+        // 사각형 크기 키우기
+        case '+':
+            for (int i = 0; i < rects.size(); ++i)
+            {
+                rects[i].scale += 0.1f;
+                MouseInside(rects[i]);
+            }
+            glutPostRedisplay();  // 화면 갱신
+	        break;
+		// 사각형 크기 줄이기
+        case '-':
+            for (int i = 0; i < rects.size(); ++i)
+            {
+                rects[i].scale -= 0.1f;
+                if (rects[i].scale < 0.3f) rects[i].scale = 0.1f;
+                MouseInside(rects[i]);
+            }
+            glutPostRedisplay();  // 화면 갱신
+			break;
+            // 사각형 움직이게 하기
+        case 'm':
+			rectMove = !rectMove;
+            break;
+        case 'r':
+            Reset();
+            glutPostRedisplay();  // 화면 갱신
+            break;
+        case 'q':
+            exit(0);
+            break;
     }
 }
 
@@ -174,6 +216,7 @@ void main(int argc, char** argv)
     glutKeyboardFunc(Keyboard);
     glutMouseFunc(Mouse);
     glutMotionFunc(MouseDrag);
+    glutTimerFunc(50, Timer, 0);   // 타이머 콜백 함수
 
     glutMainLoop();
 }
