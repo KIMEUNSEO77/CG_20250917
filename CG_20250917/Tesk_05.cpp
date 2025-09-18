@@ -171,6 +171,24 @@ void MouseDrag(int x, int y)
     glutPostRedisplay();
 }
 
+// 리셋
+void Reset()
+{
+    rects.clear();
+    InitRects();
+}
+
+GLvoid Keyboard(unsigned char key, int x, int y)
+{
+    switch (key)
+    {
+    case 'r':
+        Reset();
+        glutPostRedisplay();  // 화면 갱신
+        break;
+    }
+}
+
 void main(int argc, char** argv)
 {
     glutInit(&argc, argv);
@@ -193,6 +211,7 @@ void main(int argc, char** argv)
     glutDisplayFunc(drawScene);
     glutReshapeFunc(Reshape);
 
+    glutKeyboardFunc(Keyboard);
     glutMouseFunc(Mouse);
     glutMotionFunc(MouseDrag);
 
@@ -208,7 +227,7 @@ GLvoid drawScene()
     {
         DrawRect(rects[i]);
     }
-    DrawEraser();
+	if (eraseMode) DrawEraser();
 
     glutSwapBuffers();
 }
