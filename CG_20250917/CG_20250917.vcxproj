@@ -131,7 +131,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Eraser.cpp" />
+    <ClCompile Include="Rect.cpp" />
     <ClCompile Include="Tesk_05.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Eraser.h" />
+    <ClInclude Include="Rect.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
