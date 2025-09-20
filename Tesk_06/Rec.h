@@ -22,10 +22,12 @@ public:
 
     // 애니메이션용 변수
     float vx = 0.0f, vy = 0.0f; // 속도
-    int groupId = -1;
+    bool moving = false;
 
     // 위치 갱신용
     void SetPos(float x, float y) { posX = x; posY = y; }
+	void SetScale(float s) { scale = s; }
+    bool tooSmall() const { return (scale <= 0.1f); } // 너무 작아졌는지
 
 private:
     float color[3];

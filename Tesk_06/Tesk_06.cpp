@@ -16,6 +16,7 @@ int currentMove = 1;
 bool gRunning = false;      // 움직이는 중인지
 bool gTimerActive = false;  // 타이머 동작여부
 float gSpeed = 0.005f;
+float gScaleStep = 0.005f;
 
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -112,6 +113,13 @@ void StepAll(std::vector<Rec>& rects)
         // 위치 갱신
         r.SetPos(r.getPosX() + r.vx, r.getPosY() + r.vy);
         CheckBounds(r);
+        if (r.moving)
+        {
+            if (r.tooSmall())
+				r.SetPos(100.0f, 100.0f); // 화면 밖으로 보내기
+			else
+                r.SetScale(r.getScale() - gScaleStep);
+        }
     }
 }
 
@@ -163,6 +171,7 @@ void Animation(int hit)
         rects[base + 5].vx = gSpeed; rects[base + 5].vy = -gSpeed; 
         rects[base + 6].vx = -gSpeed; rects[base + 6].vy = gSpeed; 
         rects[base + 7].vx = gSpeed; rects[base + 7].vy = gSpeed;
+		for (int i = 0; i < 8; ++i) rects[base + i].moving = true;
     }
 
     else
@@ -183,15 +192,16 @@ void Animation(int hit)
             rects[base + 1].vx = gSpeed;
             rects[base + 2].vx = -gSpeed;
             rects[base + 3].vy = gSpeed;
+			for (int i = 0; i < 4; ++i) rects[base + i].moving = true;
         }
         // 대각선
         else if (currentMove == 2)
         {
-            // 대각선 속도 부여: 좌상/우상/좌하/우하
             rects[base + 0].vx = -gSpeed; rects[base + 0].vy = -gSpeed; // left-down
             rects[base + 1].vx = gSpeed; rects[base + 1].vy = -gSpeed; // right-down
             rects[base + 2].vx = -gSpeed; rects[base + 2].vy = gSpeed; // left-up
             rects[base + 3].vx = gSpeed; rects[base + 3].vy = gSpeed; // right-up
+            for (int i = 0; i < 4; ++i) rects[base + i].moving = true;
         }
         // 한쪽으로만
         else if (currentMove == 3)
@@ -204,6 +214,7 @@ void Animation(int hit)
                 rects[base + 1].vx = -gSpeed;
                 rects[base + 2].vx = -gSpeed;
                 rects[base + 3].vx = -gSpeed;
+                for (int i = 0; i < 4; ++i) rects[base + i].moving = true;
             }
             // 오른쪽
             else if (dir == 1)
@@ -212,6 +223,7 @@ void Animation(int hit)
                 rects[base + 1].vx = gSpeed;
                 rects[base + 2].vx = gSpeed;
                 rects[base + 3].vx = gSpeed;
+                for (int i = 0; i < 4; ++i) rects[base + i].moving = true;
             }
         }
     }
