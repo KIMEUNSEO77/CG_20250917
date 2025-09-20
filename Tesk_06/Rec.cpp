@@ -74,3 +74,42 @@ std::array<Rec, 4> Rec::MakeChild() const
     }
     return out;
 }
+
+std::array<Rec, 8> Rec::MakeDoubleChild() const
+{
+    std::array<Rec, 8> out;
+
+    if (width < 0.02f || height < 0.02f)
+		return out; // 너무 작으면 생성 안 함
+
+    // 가로가 더 길면 가로로 4등분, 세로로는 2등분
+    if (width >= height)
+    {
+		float childW = width * 0.25f;
+		float childH = height * 0.5f;
+        for (int i = 0; i < 8; ++i)
+        {
+            Rec c = *this;            // 색/스케일 그대로
+            c.width = childW;
+            c.height = childH;
+            c.posX = posX;          // 처음에는 부모 중심에 "겹쳐" 생성
+            c.posY = posY;
+            out[i] = c;
+        }
+    }
+    else if (height > width)
+    {
+		float childW = width * 0.5f;
+		float childH = height * 0.25f;
+        for (int i = 0; i < 8; ++i)
+        {
+            Rec c = *this;            // 색/스케일 그대로
+            c.width = childW;
+            c.height = childH;
+            c.posX = posX;          // 처음에는 부모 중심에 "겹쳐" 생성
+            c.posY = posY;
+            out[i] = c;
+		}
+    }
+    return out;
+}

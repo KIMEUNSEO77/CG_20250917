@@ -12,6 +12,7 @@ public:
     // 이 사각형이 클릭되었는지(const: 특정 멤버 함수가 객체 상태를 바꾸지 않음을 보장)
 	bool HitRect(float nx, float ny) const;
 	std::array<Rec, 4> MakeChild() const; // 4등분
+	std::array<Rec, 8> MakeDoubleChild() const; // 8등분
 
 	float getPosX() const { return posX; }
 	float getPosY() const { return posY; }

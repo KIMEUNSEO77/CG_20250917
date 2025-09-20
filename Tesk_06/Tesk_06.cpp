@@ -64,13 +64,31 @@ void PositionQuads(std::array<Rec, 4>& kids, const Rec& parent)
     const float dx = (parent.getWidth() * parent.getScale()) * 0.25f; // 화면상 가로 절반의 절반
     const float dy = (parent.getHeight() * parent.getScale()) * 0.25f; // 화면상 세로 절반의 절반
 
-	float offset = 0.01f; // 약간의 여유 공간
+	float offset = 0.01f; // 틈
 
-    // 좌하, 우하, 좌상, 우상 (순서는 마음대로)
     kids[0].SetPos(cx - dx - offset, cy - dy - offset); // LB
     kids[1].SetPos(cx + dx + offset, cy - dy - offset); // RB
     kids[2].SetPos(cx - dx - offset, cy + dy + offset); // LT
     kids[3].SetPos(cx + dx + offset, cy + dy + offset); // RT
+}
+
+// 사각형을 8등분
+void PositionDoubleQuads(std::array<Rec, 8>& kids, const Rec& parent)
+{
+    const float cx = parent.getPosX();
+    const float cy = parent.getPosY();
+    const float dx = (parent.getWidth() * parent.getScale()) * 0.25f; // 화면상 가로 절반의 절반
+    const float dy = (parent.getHeight() * parent.getScale()) * 0.25f; // 화면상 세로 절반의 절반
+    float offset = 0.01f; // 약간의 여유 공간
+
+    kids[0].SetPos(cx - dx - offset, cy - dy - offset); 
+    kids[1].SetPos(cx + dx + offset, cy - dy - offset); 
+    kids[2].SetPos(cx - dx - offset, cy + dy + offset); 
+    kids[3].SetPos(cx + dx + offset, cy + dy + offset); 
+    kids[4].SetPos(cx - dx - offset, cy);               
+    kids[5].SetPos(cx + dx + offset, cy);               
+    kids[6].SetPos(cx, cy + dy + offset);               
+    kids[7].SetPos(cx, cy - dy - offset);               
 }
 
 // 화면 경계에 도달하면 사라지도록
@@ -126,51 +144,75 @@ void Animation(int hit)
 {
     if (hit < 0 || hit >= (int)rects.size()) return;
 
-    auto kids = rects[hit].MakeChild();
-
-    PositionQuads(kids, rects[hit]); 
-
-    // 부모 제거 & 4개 삽입
-    rects.erase(rects.begin() + hit);
-    int base = (int)rects.size();
-    rects.insert(rects.end(), kids.begin(), kids.end());
-
-    // 좌우상하
-    if (currentMove == 1)
+    if (currentMove == 4)
     {
-        rects[base + 0].vy = -gSpeed;  
-        rects[base + 1].vx = gSpeed; 
+        auto kids = rects[hit].MakeDoubleChild();
+
+        PositionDoubleQuads(kids, rects[hit]);
+
+        // 부모 제거 & 8개 삽입
+        rects.erase(rects.begin() + hit);
+        int base = (int)rects.size();
+        rects.insert(rects.end(), kids.begin(), kids.end());
+
+        rects[base + 0].vy = -gSpeed;
+        rects[base + 1].vx = gSpeed;
         rects[base + 2].vx = -gSpeed;
         rects[base + 3].vy = gSpeed;
+        rects[base + 4].vx = -gSpeed; rects[base + 4].vy = -gSpeed;
+        rects[base + 5].vx = gSpeed; rects[base + 5].vy = -gSpeed; 
+        rects[base + 6].vx = -gSpeed; rects[base + 6].vy = gSpeed; 
+        rects[base + 7].vx = gSpeed; rects[base + 7].vy = gSpeed;
     }
-    // 대각선
-    else if (currentMove == 2)
+
+    else
     {
-        // 대각선 속도 부여: 좌상/우상/좌하/우하
-        rects[base + 0].vx = -gSpeed; rects[base + 0].vy = -gSpeed; // left-down
-        rects[base + 1].vx = gSpeed; rects[base + 1].vy = -gSpeed; // right-down
-        rects[base + 2].vx = -gSpeed; rects[base + 2].vy = gSpeed; // left-up
-        rects[base + 3].vx = gSpeed; rects[base + 3].vy = gSpeed; // right-up
-	}
-    // 한쪽으로만
-    else if (currentMove == 3)
-    {
-        int dir = rand() % 2;
-        // 왼쪽
-        if (dir == 0)
+        auto kids = rects[hit].MakeChild();
+
+        PositionQuads(kids, rects[hit]);
+
+        // 부모 제거 & 4개 삽입
+        rects.erase(rects.begin() + hit);
+        int base = (int)rects.size();
+        rects.insert(rects.end(), kids.begin(), kids.end());
+
+        // 좌우상하
+        if (currentMove == 1)
         {
-            rects[base + 0].vx = -gSpeed;
-            rects[base + 1].vx = -gSpeed;
-            rects[base + 2].vx = -gSpeed;
-            rects[base + 3].vx = -gSpeed;
-        }
-        // 오른쪽
-        else if (dir == 1)
-        {
-            rects[base + 0].vx = gSpeed;
+            rects[base + 0].vy = -gSpeed;
             rects[base + 1].vx = gSpeed;
-            rects[base + 2].vx = gSpeed;
-            rects[base + 3].vx = gSpeed;
+            rects[base + 2].vx = -gSpeed;
+            rects[base + 3].vy = gSpeed;
+        }
+        // 대각선
+        else if (currentMove == 2)
+        {
+            // 대각선 속도 부여: 좌상/우상/좌하/우하
+            rects[base + 0].vx = -gSpeed; rects[base + 0].vy = -gSpeed; // left-down
+            rects[base + 1].vx = gSpeed; rects[base + 1].vy = -gSpeed; // right-down
+            rects[base + 2].vx = -gSpeed; rects[base + 2].vy = gSpeed; // left-up
+            rects[base + 3].vx = gSpeed; rects[base + 3].vy = gSpeed; // right-up
+        }
+        // 한쪽으로만
+        else if (currentMove == 3)
+        {
+            int dir = rand() % 2;
+            // 왼쪽
+            if (dir == 0)
+            {
+                rects[base + 0].vx = -gSpeed;
+                rects[base + 1].vx = -gSpeed;
+                rects[base + 2].vx = -gSpeed;
+                rects[base + 3].vx = -gSpeed;
+            }
+            // 오른쪽
+            else if (dir == 1)
+            {
+                rects[base + 0].vx = gSpeed;
+                rects[base + 1].vx = gSpeed;
+                rects[base + 2].vx = gSpeed;
+                rects[base + 3].vx = gSpeed;
+            }
         }
     }
     gRunning = true; // 업데이트 시작
