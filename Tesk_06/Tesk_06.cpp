@@ -12,11 +12,11 @@ int height = 600;
 
 vector<Rec> rects;  // 사각형들
 
-int currentMove = 1;
+int currentMove = 1;        // 현재 애니메이션
 bool gRunning = false;      // 움직이는 중인지
 bool gTimerActive = false;  // 타이머 동작여부
-float gSpeed = 0.005f;
-float gScaleStep = 0.005f;
+float gSpeed = 0.005f;      // 이동 속도
+float gScaleStep = 0.005f;  // 축소 속도
 
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -62,15 +62,15 @@ void PositionQuads(std::array<Rec, 4>& kids, const Rec& parent)
 {
     const float cx = parent.getPosX();
     const float cy = parent.getPosY();
-    const float dx = (parent.getWidth() * parent.getScale()) * 0.25f; // 화면상 가로 절반의 절반
-    const float dy = (parent.getHeight() * parent.getScale()) * 0.25f; // 화면상 세로 절반의 절반
+    const float dx = (parent.getWidth() * parent.getScale()) * 0.25f; 
+    const float dy = (parent.getHeight() * parent.getScale()) * 0.25f;
 
 	float offset = 0.01f; // 틈
 
-    kids[0].SetPos(cx - dx - offset, cy - dy - offset); // LB
-    kids[1].SetPos(cx + dx + offset, cy - dy - offset); // RB
-    kids[2].SetPos(cx - dx - offset, cy + dy + offset); // LT
-    kids[3].SetPos(cx + dx + offset, cy + dy + offset); // RT
+    kids[0].SetPos(cx - dx - offset, cy - dy - offset); // 왼쪽 아래
+    kids[1].SetPos(cx + dx + offset, cy - dy - offset); // 오른쪽 아래
+    kids[2].SetPos(cx - dx - offset, cy + dy + offset); // 왼쪽 위
+    kids[3].SetPos(cx + dx + offset, cy + dy + offset); // 오른쪽 위
 }
 
 // 사각형을 8등분
@@ -78,9 +78,9 @@ void PositionDoubleQuads(std::array<Rec, 8>& kids, const Rec& parent)
 {
     const float cx = parent.getPosX();
     const float cy = parent.getPosY();
-    const float dx = (parent.getWidth() * parent.getScale()) * 0.25f; // 화면상 가로 절반의 절반
-    const float dy = (parent.getHeight() * parent.getScale()) * 0.25f; // 화면상 세로 절반의 절반
-    float offset = 0.01f; // 약간의 여유 공간
+    const float dx = (parent.getWidth() * parent.getScale()) * 0.25f; 
+    const float dy = (parent.getHeight() * parent.getScale()) * 0.25f; 
+    float offset = 0.01f; 
 
     kids[0].SetPos(cx - dx - offset, cy - dy - offset); 
     kids[1].SetPos(cx + dx + offset, cy - dy - offset); 
@@ -106,19 +106,18 @@ void CheckBounds(Rec& r)
         r.SetPos(100.0f, 100.0f); // 화면 밖으로 보내기
     }
 }
-void StepAll(std::vector<Rec>& rects) 
+void StepAll(vector<Rec>& rects) 
 {
     for (auto& r : rects) 
     {
-        // 위치 갱신
-        r.SetPos(r.getPosX() + r.vx, r.getPosY() + r.vy);
+        r.SetPos(r.getPosX() + r.vx, r.getPosY() + r.vy);     // 위치 갱신
         CheckBounds(r);
         if (r.moving)
         {
             if (r.tooSmall())
-				r.SetPos(100.0f, 100.0f); // 화면 밖으로 보내기
+				r.SetPos(100.0f, 100.0f); // 화면 밖으로
 			else
-                r.SetScale(r.getScale() - gScaleStep);
+                r.SetScale(r.getScale() - gScaleStep);        // 크기 갱신
         }
     }
 }
@@ -158,19 +157,18 @@ void Animation(int hit)
 
         PositionDoubleQuads(kids, rects[hit]);
 
-        // 부모 제거 & 8개 삽입
         rects.erase(rects.begin() + hit);
         int base = (int)rects.size();
         rects.insert(rects.end(), kids.begin(), kids.end());
 
-        rects[base + 0].vy = -gSpeed;
-        rects[base + 1].vx = gSpeed;
-        rects[base + 2].vx = -gSpeed;
-        rects[base + 3].vy = gSpeed;
-        rects[base + 4].vx = -gSpeed; rects[base + 4].vy = -gSpeed;
-        rects[base + 5].vx = gSpeed; rects[base + 5].vy = -gSpeed; 
-        rects[base + 6].vx = -gSpeed; rects[base + 6].vy = gSpeed; 
-        rects[base + 7].vx = gSpeed; rects[base + 7].vy = gSpeed;
+		rects[base + 0].vy = -gSpeed; rects[base + 0].vx = -gSpeed;
+		rects[base + 1].vx = gSpeed;  rects[base + 1].vy = -gSpeed;
+		rects[base + 2].vx = -gSpeed; rects[base + 2].vy = gSpeed;
+		rects[base + 3].vy = gSpeed;  rects[base + 3].vx = gSpeed;
+        rects[base + 4].vx = -gSpeed;
+        rects[base + 5].vx = gSpeed;
+        rects[base + 6].vy = gSpeed; 
+        rects[base + 7].vy = -gSpeed;
 		for (int i = 0; i < 8; ++i) rects[base + i].moving = true;
     }
 
@@ -180,7 +178,7 @@ void Animation(int hit)
 
         PositionQuads(kids, rects[hit]);
 
-        // 부모 제거 & 4개 삽입
+        // 부모 제거, 자식 삽입
         rects.erase(rects.begin() + hit);
         int base = (int)rects.size();
         rects.insert(rects.end(), kids.begin(), kids.end());
@@ -234,7 +232,7 @@ void Animation(int hit)
 // 마우스 콜백
 void Mouse(int button, int state, int x, int y)
 {
-    float nx, ny;  // 마우스가 클릭한 좌표를 정규화
+    float nx, ny;
     PixelTrans(x, y, nx, ny);
 
     if (button == GLUT_LEFT_BUTTON)
@@ -242,7 +240,7 @@ void Mouse(int button, int state, int x, int y)
         if (state == GLUT_DOWN)
         {
 			int hit = PickRect(nx, ny);
-            if (hit != -1) // 사각형을 클릭했다면
+            if (hit != -1)
             {
 				Animation(hit);
 

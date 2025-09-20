@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace 
-{ // 이 파일 안에서만 쓰는 헬퍼들
+{ 
     std::mt19937& rng() 
     {
         static std::mt19937 gen{ std::random_device{}() };
@@ -59,16 +59,15 @@ std::array<Rec, 4> Rec::MakeChild() const
 {
     std::array<Rec, 4> out;
 
-    // 자식은 폭/높이 절반, scale은 동일
     float childW = width * 0.5f;
     float childH = height * 0.5f;
 
     for (int i = 0; i < 4; ++i) 
     {
-        Rec c = *this;            // 색/스케일 그대로
+        Rec c = *this;            
         c.width = childW;
         c.height = childH;
-        c.posX = posX;          // 처음에는 부모 중심에 "겹쳐" 생성
+        c.posX = posX;         
         c.posY = posY;
         out[i] = c;
     }
@@ -89,10 +88,10 @@ std::array<Rec, 8> Rec::MakeDoubleChild() const
 		float childH = height * 0.5f;
         for (int i = 0; i < 8; ++i)
         {
-            Rec c = *this;            // 색/스케일 그대로
+            Rec c = *this;          
             c.width = childW;
             c.height = childH;
-            c.posX = posX;          // 처음에는 부모 중심에 "겹쳐" 생성
+            c.posX = posX;       
             c.posY = posY;
             out[i] = c;
         }
@@ -103,10 +102,10 @@ std::array<Rec, 8> Rec::MakeDoubleChild() const
 		float childH = height * 0.25f;
         for (int i = 0; i < 8; ++i)
         {
-            Rec c = *this;            // 색/스케일 그대로
+            Rec c = *this;            
             c.width = childW;
             c.height = childH;
-            c.posX = posX;          // 처음에는 부모 중심에 "겹쳐" 생성
+            c.posX = posX;         
             c.posY = posY;
             out[i] = c;
 		}
