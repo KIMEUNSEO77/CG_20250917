@@ -36,7 +36,7 @@ void MouseInside(Rec& r)
     if (r.posY > 1.0f - h) r.posY = 1.0f - h;
 }
 
-// 충돌 체크할 준비!!!!
+// 충돌 체크할 준비
 void GetCollid(const Rec& r, float& left, float& right, float& bottom, float& top)
 {
     float halfW = (r.width * r.scale) * 0.5f;
