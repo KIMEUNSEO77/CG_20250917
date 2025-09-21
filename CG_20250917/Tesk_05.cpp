@@ -10,6 +10,8 @@ int height = 600;
 
 int removedCount = 0; // 제거된 사각형의 개수
 
+float currentScale = 1.0f;  // 현재 지우개 크기
+
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 
@@ -70,6 +72,7 @@ void Mouse(int button, int state, int x, int y)
 			eraser.posY = ny;
 			MouseInside(eraser);
 			InitEraser();
+			eraser.scale = currentScale;
             glutPostRedisplay(); // 화면 갱신
         }
         else if (state == GLUT_UP)
@@ -90,6 +93,7 @@ void Mouse(int button, int state, int x, int y)
             temp.height = recH;
             rects.push_back(temp);
 			removedCount--;
+            currentScale -= 0.1f;
         }
     }
     glutPostRedisplay();
@@ -118,8 +122,16 @@ void MouseDrag(int x, int y)
 			eraser.color[0] = rects[i].color[0];
 			eraser.color[1] = rects[i].color[1];
             eraser.color[2] = rects[i].color[2];
-            if (rectMove) eraser.scale += 0.2f;
-			else eraser.scale += 0.1f;
+            if (rectMove)
+            {
+                eraser.scale += 0.2f;
+				currentScale = eraser.scale;
+            }
+            else 
+            {
+                eraser.scale += 0.1f; 
+                currentScale = eraser.scale;
+            }
             rects.erase(rects.begin() + i);
 			removedCount++;
         }
@@ -136,6 +148,8 @@ void Reset()
     rects.clear();
     InitRects();
 	InitEraser();
+	eraser.scale = 1.0f;
+    currentScale = eraser.scale;
 	removedCount = 0;
 	rectMove = false;
 }
