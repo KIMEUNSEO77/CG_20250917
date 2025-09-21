@@ -15,6 +15,12 @@ int height = 600;
 vector<Rec> rects(rectCount);        // 사각형들
 vector<Rec> rectLines(rectCount);    // 보드판
 
+int dragIndex = -1;                         // 드래그 중인 사각형
+float dragMouseX = 0.0f, dragMouseY = 0.0f; // 드래그 중인 사각형과 마우스의 상대좌표    
+
+float gSpeed = 0.02f;
+int movingIdx = -1; // 움직이는 사각형 인덱스
+
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
 
@@ -101,6 +107,148 @@ void DrawLineBoard()
 	}
 }
 
+// 마우스 좌표 화면 밖으로 못 나가게
+void MouseInside(Rec& r)
+{
+    float w = (r.width * r.scale) * 0.5f;
+    float h = (r.height * r.scale) * 0.5f;
+
+    if (r.posX < -1.0f + w) r.posX = -1.0f + w;
+    if (r.posX > 1.0f - w) r.posX = 1.0f - w;
+    if (r.posY < -1.0f + h) r.posY = -1.0f + h;
+    if (r.posY > 1.0f - h) r.posY = 1.0f - h;
+}
+
+// 마우스 클릭한 좌표 정규화
+void PixelTrans(int px, int py, float& nx, float& ny)
+{
+    float w = (float)glutGet(GLUT_WINDOW_WIDTH);
+    float h = (float)glutGet(GLUT_WINDOW_HEIGHT);
+    nx = (px / w) * 2.0f - 1.0f;
+    ny = 1.0f - (py / h) * 2.0f;
+}
+
+bool HitRect(Rec& rect, float nx, float ny)
+{
+    float halfW = 0.5f * rect.width * rect.scale;
+    float halfH = 0.5f * rect.height * rect.scale;
+
+    float left = rect.posX - halfW;
+    float right = rect.posX + halfW;
+    float bottom = rect.posY - halfH;
+    float top = rect.posY + halfH;
+
+    return (nx >= left && nx <= right && ny >= bottom && ny <= top);
+}
+
+// 어느 사각형 클릭하는지
+int PickRect(float nx, float ny)
+{
+    for (int i = (int)rects.size() - 1; i >= 0; --i)
+    {
+        if (HitRect(rects[i],nx, ny)) return i;
+    }
+    return -1;
+}
+
+// 드래그 종료했을 때 보드판에 맞는지 체크
+bool checkSuit(int index)
+{
+    if (index < 0 || index >= (int)rects.size() || index >= (int)rectLines.size())
+        return false;
+
+    const float tol = 0.03f;        // 허용 거리
+    const float tol2 = tol * tol;
+
+    float dx = rects[index].posX - rectLines[index].posX;
+    float dy = rects[index].posY - rectLines[index].posY;
+
+    return (dx * dx + dy * dy) < tol2;
+}
+
+// 마우스 콜백
+void Mouse(int button, int state, int x, int y)
+{
+    float nx, ny;
+    PixelTrans(x, y, nx, ny);
+
+    if (button == GLUT_LEFT_BUTTON)
+    {
+        if (state == GLUT_DOWN)
+        {
+            int hit = PickRect(nx, ny);
+            if (hit != -1)
+            {
+				dragIndex = hit;
+                dragMouseX = rects[hit].posX - nx;
+                dragMouseY = rects[hit].posY - ny;
+                glutPostRedisplay();
+            }
+        }
+        else if (state == GLUT_UP)
+        {
+            if (checkSuit(dragIndex))
+            {
+                rects[dragIndex].posX = rectLines[dragIndex].posX;
+                rects[dragIndex].posY = rectLines[dragIndex].posY;
+
+                printf("맞았음\n");
+                fflush(stdout);
+            }
+            dragIndex = -1; // 드래그 종료
+        }
+    }
+}
+
+// 마우스 드래그 콜백
+void MouseDrag(int x, int y)
+{
+    float nx, ny;
+    PixelTrans(x, y, nx, ny);
+
+    // 마우스 커서가 중심으로 바로 가는걸 방지
+    rects[dragIndex].posX = nx + dragMouseX;
+    rects[dragIndex].posY = ny + dragMouseY;
+
+    MouseInside(rects[dragIndex]);
+
+    glutPostRedisplay();
+}
+
+void Reset()
+{
+    InitRects();
+    InitLineBoard();
+	dragIndex = -1;
+    float dragMouseX = 0.0f, dragMouseY = 0.0f;
+    glutPostRedisplay();
+}
+
+// 키보드 콜백
+GLvoid Keyboard(unsigned char key, int x, int y)
+{
+    switch (key)
+    {
+    case 'm':
+        break;
+    case 'r':
+        Reset();
+        break;
+    case 'q':
+        exit(0);
+        break;
+    }
+}
+
+// 타이머
+void Timer(int value)
+{
+    
+
+    // 타이머 재설정
+    glutTimerFunc(50, Timer, 0);
+}
+
 void main(int argc, char** argv)
 {
     glutInit(&argc, argv);
@@ -120,6 +268,9 @@ void main(int argc, char** argv)
 
 	InitRects();
 	InitLineBoard();    
+    glutMouseFunc(Mouse);
+    glutKeyboardFunc(Keyboard);
+	glutMotionFunc(MouseDrag);
 
     glutDisplayFunc(drawScene);
     glutReshapeFunc(Reshape);
