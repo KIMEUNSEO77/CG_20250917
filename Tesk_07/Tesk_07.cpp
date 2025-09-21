@@ -20,6 +20,8 @@ float dragMouseX = 0.0f, dragMouseY = 0.0f; // 드래그 중인 사각형과 마우스의 상�
 
 float gSpeed = 0.02f;
 int movingIdx = -1; // 움직이는 사각형 인덱스
+bool moving = false;
+bool timerActive = false;
 
 GLvoid drawScene(GLvoid);
 GLvoid Reshape(int w, int h);
@@ -66,19 +68,19 @@ void InitLineBoard()
         rectLines[i] = rects[i];
         rectLines[i].scale = 1.0f;
 
-        const int MAX_TRIES = 500;
+        const int maxTry = 500;
         bool placed = false;
 
-        for (int tries = 0; tries < MAX_TRIES && !placed; ++tries)
+        for (int tries = 0; tries < maxTry && !placed; ++tries)
         {
-            // 새 좌표 뽑기
+            // 좌표 뽑기
             rectLines[i].posX = disX(gen);
             rectLines[i].posY = disY(gen);
 
             float l1, r1, b1, t1;
             GetCollid(rectLines[i], l1, r1, b1, t1);
 
-            // 이미 배치된 선 도형들과만 충돌 검사 (j < i)
+            // 배치된 보드판들과 충돌 검사
             placed = true;
             for (int j = 0; j < i; ++j)
             {
@@ -86,7 +88,7 @@ void InitLineBoard()
                 GetCollid(rectLines[j], l2, r2, b2, t2);
                 if (CheckCollid(l1, r1, b1, t1, l2, r2, b2, t2))
                 {
-                    placed = false; // 충돌 -> 다시 뽑기
+                    placed = false; // 다시 뽑기
                     break;
                 }
             }
@@ -102,7 +104,7 @@ void DrawLineBoard()
         glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glLineWidth(2.0f);
-        DrawRect(rectLines[i]); // 내부는 QUADS로 그려도 폴리곤모드가 라인으로 바꿔줌
+        DrawRect(rectLines[i]); // 폴리곤모드가 라인으로 바꿔줌
         glPopAttrib();
 	}
 }
@@ -157,13 +159,13 @@ bool checkSuit(int index)
     if (index < 0 || index >= (int)rects.size() || index >= (int)rectLines.size())
         return false;
 
-    const float tol = 0.03f;        // 허용 거리
-    const float tol2 = tol * tol;
+    const float offset = 0.03f;        // 오차범위
+    const float offset2 = offset * offset;
 
     float dx = rects[index].posX - rectLines[index].posX;
     float dy = rects[index].posY - rectLines[index].posY;
 
-    return (dx * dx + dy * dy) < tol2;
+    return (dx * dx + dy * dy) < offset2;
 }
 
 // 마우스 콜백
@@ -224,12 +226,57 @@ void Reset()
     glutPostRedisplay();
 }
 
+// 사각형을 보드판으로
+void MoveRect(int idx, float speed)
+{
+    float dx = rectLines[idx].posX - rects[idx].posX;
+    float dy = rectLines[idx].posY - rects[idx].posY;
+	float dist = sqrtf(dx * dx + dy * dy);   // 사각형과 보드판 사이 거리
+
+    if (dist <= speed)
+    {
+        rects[idx].posX = rectLines[idx].posX;
+        rects[idx].posY = rectLines[idx].posY;
+        movingIdx = (movingIdx + 1) % rectCount;
+		return;
+    }
+
+    // 한 스텝 전진
+    rects[idx].posX += dx / dist * speed;
+    rects[idx].posY += dy / dist * speed;
+}
+
+// 타이머
+void Timer(int value)
+{
+    if (moving)
+    {
+        if (movingIdx == -1)
+			movingIdx = 0;
+        else if (movingIdx != -1)
+        {
+			MoveRect(movingIdx, gSpeed);
+		}
+    }
+
+    // 타이머 재설정
+    glutTimerFunc(50, Timer, 0);
+    glutPostRedisplay();
+}
+
 // 키보드 콜백
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
     switch (key)
     {
     case 'm':
+		moving = !moving;
+
+        if (!timerActive)
+        {
+            timerActive = true;
+            glutTimerFunc(50, Timer, 0);
+		}
         break;
     case 'r':
         Reset();
@@ -238,15 +285,6 @@ GLvoid Keyboard(unsigned char key, int x, int y)
         exit(0);
         break;
     }
-}
-
-// 타이머
-void Timer(int value)
-{
-    
-
-    // 타이머 재설정
-    glutTimerFunc(50, Timer, 0);
 }
 
 void main(int argc, char** argv)
