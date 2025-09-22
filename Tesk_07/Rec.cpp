@@ -15,9 +15,9 @@ namespace
     }
     void randomColor(float out[3])
     {
-        out[0] = randFloat(0.01f, 1.0f);
-        out[1] = randFloat(0.01f, 1.0f);
-        out[2] = randFloat(0.01f, 1.0f);
+        out[0] = randFloat(0.1f, 1.0f);
+        out[1] = randFloat(0.1f, 1.0f);
+        out[2] = randFloat(0.1f, 1.0f);
     }
 }
 
@@ -38,10 +38,10 @@ void DrawRect(const Rec& rect)
 // 사각형 초기화
 void InitRec(Rec& rect)
 {
-    rect.posX = randFloat(0.2f, 1.0f);
+    rect.posX = randFloat(0.35f, 1.0f);
 	rect.posY = randFloat(-1.0f, 0.8f);
     randomColor(rect.color);
     rect.scale = 1.0f;
     rect.width = randFloat(0.1f, 0.3f);
-    rect.height = randFloat(0.1f, 0.3f);
+    rect.height = randFloat(0.1f, 0.5f);
 }

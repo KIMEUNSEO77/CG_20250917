@@ -55,7 +55,7 @@ bool CheckCollid(float l1, float r1, float b1, float t1,
     return true;
 }
 
-// 왼쪽에 사각형들의 보드판을 라인으로 그리기
+// 사각형들의 보드판을 라인으로 그리기
 void InitLineBoard()
 {
     static std::random_device rd;
@@ -94,6 +94,88 @@ void InitLineBoard()
             }
         }
 	}
+}
+
+// 사각형 보드판을 서로 다 붙혀서 그리기
+void InitLineBoard2()
+{
+    float nextX = -0.8f;
+    float nextY = 0.5f;
+
+    for (int i = 0; i < rectCount; i++)
+    {
+        rectLines[i] = rects[i];
+        rectLines[i].scale = 1.0f;
+    }
+  
+    for (int i = 0; i < rectCount/2; ++i)
+    {
+        rectLines[i].posX = nextX;
+        rectLines[i].posY = nextY;
+        nextX = rectLines[i].posX + (rectLines[i].width * rectLines[i].scale * 0.5f + 
+            rectLines[i+1].width * rectLines[i+1].scale * 0.5f);
+	}
+
+	nextX = -0.8f;
+    nextY = rectLines[0].posY - (rectLines[rectCount -1].height * rectLines[rectCount - 1].scale * 0.5f +
+        rectLines[0].height * rectLines[0].scale * 0.5f);
+
+    int index = 1;
+	float offset = 0.1f;
+
+    for (int i = rectCount - 1; i >= rectCount / 2; i--)
+    {
+        rectLines[i].posX = nextX;
+        rectLines[i].posY = nextY;
+        nextX = rectLines[i].posX + (rectLines[i].width * rectLines[i].scale * 0.5f +
+			rectLines[i - 1].width * rectLines[i - 1].scale * 0.5f);
+        nextY = rectLines[index].posY - (rectLines[i - 1].height * rectLines[i - 1].scale * 0.5f +
+			rectLines[index].height * rectLines[index].scale * 0.5f) - offset;
+
+        index++;
+        offset += 0.05f;
+    }
+}
+
+// 사각형 보드판을 나눠서 그리기
+void InitLineBoard3()
+{
+    float nextX = -0.8f;
+    float nextY = 0.7f;
+
+    for (int i = 0; i < rectCount; i++)
+    {
+        rectLines[i] = rects[i];
+        rectLines[i].scale = 1.0f;
+    }
+    
+    for (int i = 0; i < 5; i++)
+    {
+		rectLines[i].posX = nextX;
+        rectLines[i].posY = nextY;
+        nextY = rectLines[i].posY - (rectLines[i].height * rectLines[i].scale * 0.5f +
+			rectLines[i + 1].height * rectLines[i + 1].scale * 0.5f);
+    }
+
+    nextX = rectLines[4].posX + (rectLines[4].width * rectLines[4].scale * 0.5f +
+        rectLines[5].width * rectLines[5].scale * 0.5f);
+	nextY = rectLines[4].posY - 0.05f;
+
+    for (int i = 5; i < 8; i++)
+    {
+        rectLines[i].posX = nextX;
+        rectLines[i].posY = nextY;
+        nextX = rectLines[i].posX + (rectLines[i].width * rectLines[i].scale * 0.5f +
+            rectLines[i + 1].width * rectLines[i + 1].scale * 0.5f);
+    }
+
+	rectLines[8].posX = rectLines[7].posX + 0.05f;
+	rectLines[8].posY = rectLines[7].posY + (rectLines[7].height * rectLines[7].scale * 0.5f +
+        rectLines[8].height * rectLines[8].scale * 0.5f);
+
+	rectLines[9].posX = rectLines[8].posX + 0.05f;
+    rectLines[9].posY = rectLines[8].posY + (rectLines[8].height * rectLines[8].scale * 0.5f +
+		rectLines[9].height * rectLines[9].scale * 0.5f);
 }
 
 void DrawLineBoard()
@@ -305,7 +387,9 @@ void main(int argc, char** argv)
         std::cout << "GLEW Initialized\n";
 
 	InitRects();
-	InitLineBoard();    
+	InitLineBoard3();    
+	//InitLineBoard2();
+
     glutMouseFunc(Mouse);
     glutKeyboardFunc(Keyboard);
 	glutMotionFunc(MouseDrag);
@@ -327,8 +411,8 @@ GLvoid drawScene()
     glColor3f(1.0f, 0.0f, 0.0f);
 
     glBegin(GL_LINES);
-    glVertex2f(0.0f, -1.0f);  // x=0 이면 화면 중앙 세로선
-    glVertex2f(0.0f, 1.0f);
+    glVertex2f(0.2f, -1.0f);  // x=0 이면 화면 중앙 세로선
+    glVertex2f(0.2f, 1.0f);
     glEnd();
     glutSwapBuffers();
 }
